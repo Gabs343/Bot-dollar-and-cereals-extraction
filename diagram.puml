@@ -1,0 +1,129 @@
+@startuml  
+skinparam {
+    linetype ortho
+    ArrowColor SeaGreen
+}
+
+package Bot{
+    class Exception{}
+    class ServiceNotFound{}
+    class PathNotExistException{}
+    class MissingColumnsException{}
+
+    package processes{
+        class AmbitoProcess{
+            - url: str
+            + open(): None
+            + close(): None
+            + extract_dollar(): str
+        }
+
+        class BCRProcess{
+            - url: str
+            + open(): None
+            + close(): None
+            + set_product(product: str): None
+            + set_price(price: str): None
+            + set_date(start: str, end: str): None
+            + click_filter(): None
+            + clean_filter(): None
+            + get_last_price_for_product(): str
+        }
+
+        class XLSXTemplateProcess{
+            - output_folder_path: str
+            - template_folder_path: str
+            - template_file_name: str
+            - output_file_name: str
+            - template_file_path: str
+            + file_path(): str
+            - get_folder_path(folder: str): str
+            - create_folders(folders: list[str]): None
+            - columns_exists(columns: list[str]): bool
+            + create_output_with_data(data: dict): None
+        }
+    }
+
+    class Main{
+        - settings_services: list[SettingService]
+        - logs_services: list[LogService]
+        - bot_name: str
+        - status: str
+        - status_callback: def
+        - had_error: bool
+        + start(*args): None
+        + pause(): None
+        + unpause(): None
+        + stop(): None
+        + do_ambito_proccess(): dict
+        + do_bcr_proccess(): dict
+        + do_xlsx_proccess(data: dict): str
+        - notify_status(new_status: str): None
+        - get_log_service(log_type: LogService): LogService
+        - get_setting_service(setting_type: SettingService): SettingService
+        - get_settings_services(): list[SettingService]
+        - execution_begun(): None
+        - execution_completed(): None
+        - execute_action(function: def, *args): Any
+        - close_logs(): None
+    }
+
+    abstract SettingService{
+        - settings: dict
+    }
+
+    class BcrSetting{
+        + get_new_settings(): dict
+    }
+
+    abstract LogService{
+        + create(): None
+        + write_info(message: str): None
+        + write_error(message: str, detail: str = None): None
+        + close(): None
+        + create_folder(): None
+    }
+
+    class LogTxt{
+        - path: str
+        - name: str
+        - logger: Logger
+
+        + write_and_execute(function, args): None
+    }
+
+    class LogXlsx{
+        - path: str
+        - name: str
+        - row: int
+        - log: dict
+
+        + write_in_column(column: str, message: str): None
+        - style_status(value: str): list[str]
+    }
+
+    class LogVideo{
+        - path: str
+        - name: str
+        - recorder: ScreenRecorder
+    }
+}
+
+Main o-left- SettingService
+Main o-right- LogService
+
+Main o-- AmbitoProcess
+Main o-- BCRProcess
+Main o-- XLSXTemplateProcess
+
+SettingService <|.up. BcrSetting
+
+LogService <|.up. LogTxt
+LogService <|.down. LogXlsx
+LogService <|.right. LogVideo
+
+Exception <|.. ServiceNotFound
+Exception <|.. PathNotExistException
+Exception <|.. MissingColumnsException
+
+@enduml 
