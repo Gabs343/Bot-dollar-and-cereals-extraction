@@ -3,9 +3,14 @@ import logging
 import pandas as pd
 import time
 import pyscreenrec
+import subprocess
 from datetime import datetime
 
 class LogService:
+    
+    def __init__(self, name: str) -> None:
+        self.path = f'{os.path.dirname(os.path.abspath(__file__))}\\logs\\{name}'
+    
     def create() -> None: raise NotImplementedError
     def write_info(message: str) -> None: raise NotImplementedError
     def write_error() -> None: raise NotImplementedError
@@ -16,17 +21,16 @@ class LogService:
             os.makedirs(path)
     
 class LogTxt(LogService):
-    def __init__(self) -> None:
-        super().__init__()
-        self.__path: str = f'{os.path.dirname(os.path.abspath(__file__))}\\logs\\logsTxt'
-        self.__name: str = f'Log-{datetime.now().strftime("%d.%m.%Y_%H%M%S")}.txt'
+    def __init__(self, name: str) -> None:
+        super().__init__(name=name)
+        self.__name: str = f'{name}.txt'
         self.__logger: logging.Logger = None
-        self.create_folder(path=self.__path)
+        self.create_folder(path=self.path)
         self.create()
         
     @property
     def file_path(self) -> str:
-        return f'{self.__path}\\{self.__name}'
+        return f'{self.path}\\{self.__name}'
             
     def create(self) -> None:
         logger_file: str = self.file_path
@@ -63,18 +67,17 @@ class LogTxt(LogService):
         return type(self).__name__
             
 class LogXlsx(LogService):
-    def __init__(self) -> None:
-        super().__init__()
-        self.__path: str = f'{os.path.dirname(os.path.abspath(__file__))}\\logs\\logsXlsx'
-        self.__name: str = f'Log-{datetime.now().strftime("%d.%m.%Y_%H%M%S")}.xlsx'
+    def __init__(self, name: str) -> None:
+        super().__init__(name=name)
+        self.__name: str = f'{name}.xlsx'
         self.__row: int = 1
         self.__log: dict = {}
-        self.create_folder(path=self.__path)
+        self.create_folder(path=self.path)
         self.create()
         
     @property
     def file_path(self) -> str:
-        return f'{self.__path}\\{self.__name}'
+        return f'{self.path}\\{self.__name}'
             
     def create(self, columns: list[str] = None) -> None:
         log_columns: list[str] = ["Time", "Title", "Status", "Detail"]
@@ -114,20 +117,28 @@ class LogXlsx(LogService):
         return type(self).__name__
     
 class LogVideo(LogService):
-    def __init__(self) -> None:
-        super().__init__()
-        self.__path: str = f'{os.path.dirname(os.path.abspath(__file__))}\\logs\\logsRecords'
-        self.__name: str = f'Record-{datetime.now().strftime("%d.%m.%Y_%H%M%S")}.mp4'
+    def __init__(self, name: str) -> None:
+        super().__init__(name=name)
+        self.__name: str = f'{name}.mp4'
         self.__recorder = pyscreenrec.ScreenRecorder()
-        self.create_folder(path=self.__path)
+        self.create_folder(path=self.path)
         self.create()
     
     @property
     def file_path(self) -> str:
-        return f'{self.__path}\\{self.__name}'
+        return f'{self.path}\\{self.__name}'
     
     def create(self) -> None:
         self.__recorder.start_recording(self.file_path, 10)
     
     def close(self) -> None:
         self.__recorder.stop_recording()
+        time.sleep(5)
+        self.__convert_to_mkv()
+        
+    def __convert_to_mkv(self):
+        if(os.path.exists(self.file_path)):
+            output = self.file_path.replace('.mp4', '.mkv')
+            subprocess.run(f'ffmpeg -i "{self.file_path}" -f matroska "{output}"', shell=True)
+            os.remove(self.file_path)
+            self.__name = self.__name.replace('.mp4', '.mkv')  
