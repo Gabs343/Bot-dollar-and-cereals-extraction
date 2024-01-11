@@ -20,8 +20,8 @@ class XLSXTemplateProcess:
         return f'{self.__output_folder_path}\\{self.__output_file_name}'
     
     def __get_folder_path(self, folder: str) -> str:
-        path: str = os.path.abspath(__file__).split("\\")[0:-2]
-        path = '\\'.join(path)
+        folders: list[str] = os.path.abspath(__file__).split("\\")[0:-2]
+        path = '\\'.join(folders)
         return f'{path}\\{folder}'
     
     def __create_folders(self, folders: list[str]) -> None:
