@@ -59,7 +59,7 @@ class Main:
             ####################
             
             self.__execution_completed()
-            #self.do_sent_mails_proccess(attachments=[output_path])
+            self.do_sent_mail_proccess(attachments=[output_path])
         except Exception as e: 
             raise Exception(e)
         
@@ -157,11 +157,9 @@ class Main:
             self.__execute_action(function=logTxt.write_error, message='Xlsx template process not completed', detail=e)
             self.__had_error = True
     
-    def do_sent_mails_proccess(self, attachments: list[str]=None) -> None:
-        logTxt: LogTxt = self.__get_log_service(log_type=LogTxt)
-        logXlsx: LogXlsx = self.__get_log_service(log_type=LogXlsx)
-        attachments.append(logTxt.file_path)
-        attachments.append(logXlsx.file_path)
+    def do_sent_mail_proccess(self, attachments: list[str]=None) -> None:
+        logs_paths = [log.file_path for log in self.__logs_services]
+        attachments.extend(logs_paths)
         if(self.__had_error):
             self.send_outlook(to_mail='', 
                               subject='Bot execution completed with errors',
@@ -202,7 +200,7 @@ class Main:
         logXlsx.write_info(message=f'The Bot has begun')
         self.__notify_status(new_status="RUNNING")
              
-    def __execution_completed(self):
+    def __execution_completed(self) -> None:
         self.__notify_status(new_status="READY")
         logXlsx: LogXlsx = self.__get_log_service(log_type=LogXlsx)
         if(self.__had_error):
