@@ -133,7 +133,6 @@ class LogVideo(LogService):
     
     def close(self) -> None:
         self.__recorder.stop_recording()
-        time.sleep(5)
         self.__convert_to_mkv()
         
     def __convert_to_mkv(self):
@@ -141,4 +140,7 @@ class LogVideo(LogService):
             output = self.file_path.replace('.mp4', '.mkv')
             subprocess.run(f'ffmpeg -i "{self.file_path}" -f matroska "{output}"', shell=True)
             os.remove(self.file_path)
-            self.__name = self.__name.replace('.mp4', '.mkv')  
+            self.__name = self.__name.replace('.mp4', '.mkv') 
+    
+    def __str__(self) -> str:
+        return type(self).__name__
